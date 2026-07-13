@@ -5,11 +5,26 @@ Open Business Blueprint for **ISCO-08 2529**: Database and Network Professionals
 pure-cognitive work, the LLM-first wave, **no robotics gate** —
 eligible for actor implementation now.
 
-**Maturity: `:blueprint`** — blueprint only; **no actor implementation
-yet**, and none is claimed. The implemented actor will follow the
-fleet-standard pattern (advisor-LLM sealed behind the independent
-`:db-network-nec-governor` governor, human approval workflow, append-only
-audit ledger). Seventh wave-0 cognitive batch (ADR-2607122700 addenda).
+**Maturity: `:implemented`** — DatabaseNetworkProfessionalsAdvisor ⊣
+DatabaseNetworkProfessionalsGovernor as a langgraph StateGraph
+(`intake → advise → govern → decide → commit/hold`, human-approval
+interrupt), modeled on cloud-itonami-isco-4311's bookkeeping actor.
+12 tests / 24 assertions green.
+
+The schema HARD invariant — 3NF as a relation between registered
+candidate keys and proposed functional dependencies:
+
+1. **Transitive-dependency detection** — a non-trivial FD is only
+   admissible if its determinant is a superkey (superset of some
+   registered candidate key) or every dependent attribute is itself
+   part of some candidate key. Otherwise it is a transitive
+   dependency, detected by set membership, not design taste.
+2. **Key basis** — a migration must target a schema with at least one
+   registered candidate key (no undefined schema).
+
+Also HARD: unregistered organization, non-`:propose` effect.
+Escalations (always human sign-off): `:apply-migration` (production
+schema change), low confidence (< 0.6).
 
 
 
