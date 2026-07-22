@@ -8,7 +8,9 @@
   A proposal: {:op :propose-migration|:apply-migration
                :effect :propose :schema-id str
                :fds [{:determinant #{} :dependent #{}}]
-               :stake kw :confidence n :rationale str}")
+               :stake kw :confidence n :rationale str}"
+  (:require #?(:clj  [clojure.edn :as edn]
+               :cljs [cljs.reader :as edn])))
 
 (defprotocol Advisor
   (-advise [advisor store request] "request -> proposal map"))
@@ -34,7 +36,7 @@
 
 (defn- parse-proposal [content]
   (try
-    (let [p (read-string content)]
+    (let [p (edn/read-string content)]
       (if (map? p)
         (assoc p :effect :propose)
         {:op :unknown :effect :propose :confidence 0.0 :stake :high
