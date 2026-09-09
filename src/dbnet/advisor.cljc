@@ -22,7 +22,11 @@
    :fds fds
    :stake (or stake :low)
    :confidence (case (or stake :low) :high 0.7 :medium 0.85 :low 0.95)
-   :rationale (str "proposed " (name op) " for client " (:client-id request))})
+   ;; `pr-str`, not `name`: an unnamed op is exactly the input the governor's
+   ;; vocabulary check exists to refuse, and `(name nil)` threw here first —
+   ;; upstream of governance, so the refusal never happened. A crash in the
+   ;; advisor is not a refusal by the governor.
+   :rationale (str "proposed " (pr-str op) " for client " (:client-id request))})
 
 (defn mock-advisor []
   (reify Advisor

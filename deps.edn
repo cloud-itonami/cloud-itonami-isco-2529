@@ -11,6 +11,10 @@
          :main-opts    ["-m" "clj-kondo.main"
                         "--lint" "src" "test"
                         "--fail-level" "error"]}
+;; The governed-scenario harness. Separate from :test because it asserts a
+  ;; property the unit tests cannot: that the WIRED graph refuses, and that a
+  ;; run demonstrating zero refusals is a failure rather than a pass.
+  :sim {:main-opts ["-m" "dbnet.sim"]}
   :test {:extra-paths ["test"]
          :extra-deps {io.github.cognitect-labs/test-runner
                       {:git/tag "v0.5.1" :git/sha "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73"}}

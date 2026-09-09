@@ -21,7 +21,18 @@
             [langgraph.checkpoint :as cp]
             [dbnet.advisor :as advisor]
             [dbnet.governor :as governor]
+            [dbnet.ledger :as ledger]
+            [dbnet.phase :as phase]
             [dbnet.store :as store]))
+
+(defn- append-chained!
+  "Append `m` to the store's ledger as the next CHAINED entry. Reads the
+  current ledger so the new entry commits to both its content and its
+  position. Returns the entry."
+  [store m]
+  (let [e (ledger/entry (vec (store/ledger store)) m)]
+    (store/append-ledger! store e)
+    e))
 
 (defn build-graph
   "Build a compiled DatabaseNetworkProfessionalsActor graph. `store` implements
@@ -53,24 +64,24 @@
                         :audit [{:node :govern :verdict v}]})))
       (g/add-node :decide
                    (fn [{:keys [verdict]}]
-                     {:disposition (cond
-                                     (:hard? verdict) :hold
-                                     (:escalate? verdict) :request-approval
-                                     :else :commit)}))
+                     {:disposition (phase/of-verdict verdict)}))
       (g/add-node :request-approval (fn [s] s))
       (g/add-node :commit
-                   (fn [{:keys [request proposal]}]
+                   (fn [{:keys [request proposal disposition]}]
                      (let [record {:client-id (:client-id request)
                                     :op (:op proposal)
                                     :schema-id (:schema-id proposal)
-                                    :payload proposal}]
+                                    :payload proposal}
+                           approved-by (if (phase/approved-commit? disposition)
+                                         :human
+                                         :actor)]
                        (store/commit-record! store record)
-                       (store/append-ledger! store {:disposition :commit :record record})
+                       (append-chained! store (ledger/commit-entry record approved-by))
                        {:record record
-                        :audit [{:node :commit :record record}]})))
+                        :audit [{:node :commit :record record :approved-by approved-by}]})))
       (g/add-node :hold
                    (fn [{:keys [verdict]}]
-                     (store/append-ledger! store {:disposition :hold :verdict verdict})
+                     (append-chained! store (ledger/hold-entry verdict))
                      {:audit [{:node :hold :verdict verdict}]}))
       (g/set-entry-point :intake)
       (g/add-edge :intake :advise)
