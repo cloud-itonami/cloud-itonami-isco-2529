@@ -70,11 +70,42 @@
     (is (some #(= :no-actuation (:rule %)) (:violations v)))))
 
 (deftest escalates-migration-apply
-  (let [st (fresh-store)
-        v (governor/check req {} {:op :apply-migration :effect :propose
-                                  :schema-id "orders" :confidence 0.9 :stake :high} st)]
-    (is (not (:hard? v)))
-    (is (:escalate? v))))
+  (testing "a production migration escalates ONLY once it has passed the schema
+  checks. This test used to pass a proposal with no :fds at all and assert
+  {:hard? false :escalate? true} — that is, it asserted the defect: the
+  operation that changes the production schema reaching a human with an empty
+  violation list. The FD set is the evidence the migration offers for its own
+  normalization, so it is now required, and the escalation is what is left
+  after the checks pass rather than instead of them."
+    (let [st (fresh-store)
+          v (governor/check req {} {:op :apply-migration :effect :propose
+                                    :schema-id "orders" :confidence 0.9 :stake :high
+                                    :fds [{:determinant #{"order-id"}
+                                           :dependent #{"customer-id"}}]} st)]
+      (is (not (:hard? v)))
+      (is (:escalate? v))))
+  (testing "and the same operation with no FDs declared now HOLDS"
+    (let [st (fresh-store)
+          v (governor/check req {} {:op :apply-migration :effect :propose
+                                    :schema-id "orders" :confidence 0.9 :stake :high} st)]
+      (is (:hard? v))
+      (is (some #(= :no-fds-declared (:rule %)) (:violations v))))))
+
+(deftest confidence-floor-boundary
+  (testing "exactly at the floor is NOT low — the comparison is `<`, so the
+  boundary case is the only input that distinguishes `<` from `<=`. Without a
+  case sitting exactly on the line, flipping that operator leaves every test
+  green."
+    (let [st (fresh-store)
+          at-floor (governor/check req {} (assoc (migration [{:determinant #{"order-id"}
+                                                              :dependent #{"customer-id"}}])
+                                                 :confidence governor/confidence-floor) st)
+          below (governor/check req {} (assoc (migration [{:determinant #{"order-id"}
+                                                           :dependent #{"customer-id"}}])
+                                              :confidence 0.5999) st)]
+      (is (:ok? at-floor))
+      (is (not (:escalate? at-floor)))
+      (is (:escalate? below)))))
 
 (deftest escalates-low-confidence
   (let [st (fresh-store)
