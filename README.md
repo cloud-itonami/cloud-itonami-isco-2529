@@ -35,15 +35,15 @@ schema change), low confidence (< 0.6).
 
 ## Layout
 
-    src/dbnet/operation.cljc  the closed operation vocabulary (allowlist + reserved)
-    src/dbnet/facts.cljc      well-formedness of client, key and proposal values
-    src/dbnet/governor.cljc   the independent safety layer
-    src/dbnet/phase.cljc      verdict -> phase, and what each phase may do
-    src/dbnet/ledger.cljc     append-only audit ledger, hash-chained
-    src/dbnet/store.cljc      SSoT
-    src/dbnet/advisor.cljc    proposes only (mock / LLM)
-    src/dbnet/actor.cljc      the wired StateGraph
-    src/dbnet/sim.cljc        governed-scenario harness
+    src/dbnet/operation.kotoba  the closed operation vocabulary (allowlist + reserved)
+    src/dbnet/facts.kotoba      well-formedness of client, key and proposal values
+    src/dbnet/governor.kotoba   the independent safety layer
+    src/dbnet/phase.kotoba      verdict -> phase, and what each phase may do
+    src/dbnet/ledger.kotoba     append-only audit ledger, hash-chained
+    src/dbnet/store.kotoba      SSoT
+    src/dbnet/advisor.kotoba    proposes only (mock / LLM)
+    src/dbnet/actor.kotoba      the wired StateGraph
+    src/dbnet/sim.kotoba        governed-scenario harness
 
 ## Verifying it
 
