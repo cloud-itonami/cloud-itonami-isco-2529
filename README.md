@@ -47,9 +47,9 @@ schema change), low confidence (< 0.6).
 
 ## Verifying it
 
-    clojure -M:test    # 55 tests, 210 assertions
-    clojure -M:sim     # 18 scenarios, 17 refusals; exits 1 if refusals = 0
-    clojure -M:lint
+    kbb -M:test    # 55 tests, 210 assertions
+    kbb -M:sim     # 18 scenarios, 17 refusals; exits 1 if refusals = 0
+    kbb -M:lint
 
 `:sim` is separate from `:test` because it asserts something the unit
 tests cannot: that the **wired graph** refuses, that an escalated
