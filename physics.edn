@@ -1,0 +1,33 @@
+;; What this vertical's robot physically does, declared for
+;; kotoba.robotics.process (kotoba-lang/robotics). `kbb -M:physics` runs it.
+;;
+;; ISCO 2529, database and network professionals n.e.c.. The README calls this pure-cognitive work with no robotics
+;; gate; blueprint.edn nevertheless declares :itonami.blueprint/robotics true.
+;; The physical work declared here is the handling the occupation itself
+;; entails (ASSUMPTION, not stated in the README): lifting a disk shelf (JBOD) into the storage rack, and delivering spare drives and parts to the rack rows.
+;; Replace with the README premise once one is written.
+;;
+;; Every number without a cited source is marked `estimate` in its :basis.
+;; Replacing an estimate with a sourced value is this bot's growth work.
+{:physics/schema "itonami.physical-ai.spec.v1"
+ :repo "cloud-itonami/cloud-itonami-isco-2529"
+ :cases
+ [{:id :disk-shelf-into-rack
+   :kind :manipulator
+   :procedure "arm lifts a disk shelf (JBOD) from the lift cart onto its rack rails"
+   :params {:l1-m 0.60 :l2-m 0.55 :m1-kg 8.0 :m2-kg 6.0
+            :from [0.65 -0.20] :to [0.70 0.30] :duration-s 3.0 :steps 500}
+   :sweep {:param :payload-kg :values [15.0 22.0 30.0 38.0 45.0]}
+   :quantity :peak-tau1-nm
+   :limit {:max 350.0 :basis "estimate: continuous shoulder torque of a 20 kg-payload class industrial arm"}
+   :boundary {:lo 1.0 :hi 100.0}}
+  {:id :spares-to-rack-row
+   :kind :transport
+   :procedure "AMR delivers spare drives and parts from the parts cage to the rack row"
+   :params {:mass-kg 40.0 :payload-kg 20.0 :v-max-mps 1.0 :a-max-mps2 0.5
+            :brake-decel-mps2 0.7 :drive-force-n 70.0 :crr 0.02
+            :cog-height-m 0.60 :support-half-length-m 0.25}
+   :sweep {:param :distance-m :values [15.0 30.0 50.0 70.0 100.0]}
+   :quantity :cycle-time-s
+   :limit {:max 60.0 :basis "estimate: a failed drive should have its spare at the rack within a minute of the swap being approved"}
+   :boundary {:lo 5.0 :hi 250.0}}]}
